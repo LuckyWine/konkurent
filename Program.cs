@@ -34,6 +34,7 @@ namespace AdvancedSynchronization
         }
 
         private Node head;
+        private int count;
 
         public void Push(T item)
         {
@@ -45,6 +46,7 @@ namespace AdvancedSynchronization
                     break;
                 spinWait.SpinOnce();
             }
+            Interlocked.Increment(ref count);
         }
 
         public bool TryPop(out T item)
@@ -60,6 +62,7 @@ namespace AdvancedSynchronization
                 }
                 if (Interlocked.CompareExchange(ref head, outHead.Next, outHead) == outHead)
                 {
+                    Interlocked.Decrement(ref count);
                     item = outHead.Value;
                     return true;
                 }
@@ -67,15 +70,6 @@ namespace AdvancedSynchronization
             }
         }
 
-        public int Count
-        {
-            get
-            {
-                var count = 0;
-                for (var e = head; e.Next != null; e  = e.Next)
-                    count++;
-                return count;
-            }
-        } 
+        public int Count => count; 
 
 }
